@@ -1,5 +1,6 @@
 import 'package:BitDo/core/widgets/gradient_button.dart';
 import 'package:BitDo/features/auth/presentation/pages/login_screen.dart';
+import 'package:BitDo/features/auth/presentation/pages/otp_bottom_sheet.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -91,7 +92,40 @@ class _SignupScreenState extends State<SignupScreen> {
                       text: "Verify",
                       isEnabled: _isEmailPopulated,
                       onPressed: () {
-                        // verify
+                        if (_isEmailPopulated) {
+                          // Close keyboard first
+                          FocusScope.of(context).unfocus();
+
+                          // SHOW THE BOTTOM SHEET
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled:
+                                true, // Allows the sheet to rise with keyboard
+                            backgroundColor: Colors
+                                .transparent, // Let the sheet define its own corners
+                            barrierColor: Color(0xffECEFF5).withOpacity(0.7),
+                            builder: (context) => OtpBottomSheet(
+                              email: _emailController
+                                  .text, // Pass the actual email typed
+                              onVerified: () {
+                                // Close the bottom sheet
+                                Navigator.pop(context);
+
+                                // Update state in parent screen
+                                setState(() {
+                                  _isEmailVerified = true;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Email Verified Successfully!",
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        }
                       },
                     ),
                   ),
@@ -233,7 +267,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            // 2. NAVIGATE TO LOGIN
+                            //Navigate to login
                             Navigator.push(
                               context,
                               MaterialPageRoute(
