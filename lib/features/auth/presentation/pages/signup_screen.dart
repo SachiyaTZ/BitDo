@@ -1,4 +1,6 @@
 import 'package:BitDo/core/widgets/gradient_button.dart';
+import 'package:BitDo/features/auth/presentation/pages/login_screen.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -14,13 +16,37 @@ class _SignupScreenState extends State<SignupScreen> {
   final _confirmPassController = TextEditingController();
   final _inviteController = TextEditingController();
 
+  // State Variables
   bool _agreedToTerms = false;
   bool _isPasswordVisible = false;
+
+  // Logic States
+  bool _isEmailPopulated = false;
+  bool _isEmailVerified = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(() {
+      setState(() {
+        _isEmailPopulated = _emailController.text.isNotEmpty;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passController.dispose();
+    _confirmPassController.dispose();
+    _inviteController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0XFFF6F9FF),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -32,102 +58,139 @@ class _SignupScreenState extends State<SignupScreen> {
                 "Let's Get You Started",
                 style: TextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w700,
+                  color: Color(0XFF151E2F),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               const Text(
                 "Set up your profile with strong protection for safe crypto trading and storage.",
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w500,
+                  color: Color(0XFF454F63),
+                ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
               _textLabel("Email"),
               TextField(
                 controller: _emailController,
                 decoration: _inputDecoration(
                   hint: "Enter your email",
-                  prefixIcon: Icons.email_outlined,
-
-                  suffixIcon: _verifyButton("Verify", onPressed: () {}),
-                ),
-              ),
-              const SizedBox(height: 16),
-              _textLabel("Password"),
-              TextField(
-                controller: _passController,
-                obscureText: !_isPasswordVisible,
-                decoration: _inputDecoration(
-                  hint: "Enter Password",
-                  prefixIcon: Icons.lock_outline,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off_outlined,
-                      color: Colors.grey[600],
+                  iconPath: "assets/icons/sign_up/sms.png",
+                  suffix: Padding(
+                    padding: const EdgeInsets.only(
+                      right: 8.0,
+                      top: 8.0,
+                      bottom: 8.0,
                     ),
-                    onPressed: () => setState(
-                      () => _isPasswordVisible = !_isPasswordVisible,
+                    child: _verifyButton(
+                      text: "Verify",
+                      isEnabled: _isEmailPopulated,
+                      onPressed: () {
+                        // verify
+                      },
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 30),
+
+              _textLabel("Password"),
+              TextField(
+                controller: _passController,
+                enabled: _isEmailVerified,
+                obscureText: !_isPasswordVisible,
+                decoration: _inputDecoration(
+                  hint: "Enter Password",
+                  iconPath: "assets/icons/sign_up/lock.png",
+                  suffixIconPath: "assets/icons/sign_up/eye.png",
+                  isPassword: true,
+                ),
+              ),
+              const SizedBox(height: 30),
 
               _textLabel("Confirm Password"),
               TextField(
                 controller: _confirmPassController,
+                enabled: _isEmailVerified,
                 obscureText: !_isPasswordVisible,
                 decoration: _inputDecoration(
                   hint: "Re-Enter Password",
-                  prefixIcon: Icons.lock_outline,
-                  suffixIcon: Icon(
-                    _isPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off_outlined,
-                    color: Colors.grey[600],
-                  ),
+                  iconPath: "assets/icons/sign_up/lock.png",
+                  isPassword: true,
+                  suffixIconPath: "assets/icons/sign_up/eye.png",
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 30),
 
               _textLabel("Invitation Code (optional)"),
               TextField(
                 controller: _inviteController,
+                enabled: _isEmailVerified,
                 decoration: _inputDecoration(
                   hint: "Please Enter Your Code",
-                  prefixIcon: Icons.tag,
+                  iconPath: "assets/icons/sign_up/hashtag.png",
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 22),
+
               Row(
                 children: [
-                  Checkbox(
-                    value: _agreedToTerms,
-                    onChanged: (v) => setState(() => _agreedToTerms = v!),
-                    activeColor: const Color(0xFF2F5599),
+                  SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: Checkbox(
+                      value: _agreedToTerms,
+                      onChanged: _isEmailVerified
+                          ? (v) => setState(() => _agreedToTerms = v!)
+                          : null,
+                      activeColor: const Color(0xFF2F5599),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
                   ),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text.rich(
                       TextSpan(
                         text: "I agree to the ",
-                        style: const TextStyle(fontSize: 12),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0XFF454F63),
+                          fontWeight: FontWeight.w400,
+                          fontFamily: 'Inter',
+                        ),
                         children: [
                           TextSpan(
                             text: "Terms of Service",
                             style: TextStyle(
-                              color: Colors.blue[700],
-                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Inter',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0XFF28A6FF),
                             ),
                           ),
-                          const TextSpan(text: " and "),
+                          TextSpan(
+                            text: " and ",
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0XFF454F63),
+                            ),
+                          ),
                           TextSpan(
                             text: "Privacy Policy",
                             style: TextStyle(
-                              color: Colors.blue[700],
-                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Inter',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0XFF28A6FF),
                             ),
                           ),
                         ],
@@ -138,7 +201,52 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               const SizedBox(height: 24),
 
-              GradientButton(text: "Sign Up", onPressed: () {}),
+              //Sign up button
+              GradientButton(
+                text: "Sign Up",
+                onPressed: _isEmailVerified && _agreedToTerms
+                    ? () {
+                        //sign up logic
+                      }
+                    : () {},
+              ),
+
+              const SizedBox(height: 24),
+              Center(
+                child: Text.rich(
+                  TextSpan(
+                    text: "Already have an account? ",
+                    style: const TextStyle(
+                      color: Color(0XFF151E2F),
+                      fontSize: 14,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w400,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: "Sign in",
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 14,
+                          color: Color(0XFF1D5DE5),
+                          fontWeight: FontWeight.w600,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            // 2. NAVIGATE TO LOGIN
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginScreen(),
+                              ),
+                            );
+                          },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -146,17 +254,17 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  //Widgets for verify button, text labels and input text styles/decoration
+  // helper widgets
 
   Widget _textLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6.0),
+      padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
         text,
         style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: Colors.black54,
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: Color(0XFF2E3D5B),
         ),
       ),
     );
@@ -164,44 +272,111 @@ class _SignupScreenState extends State<SignupScreen> {
 
   InputDecoration _inputDecoration({
     required String hint,
-    required IconData prefixIcon,
+    required String iconPath,
     Widget? suffix,
-    Widget? suffixIcon,
+    bool isPassword = false,
+    bool enabled = true,
+    String? suffixIconPath,
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-      prefixIcon: Icon(prefixIcon, color: Colors.grey[400], size: 20),
-      suffix: suffix,
-      suffixIcon: suffixIcon,
-      filled: true,
-      fillColor: const Color(0xFFF5F6FA), 
-      contentPadding: const EdgeInsets.symmetric(vertical: 12),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none, 
+      hintStyle: TextStyle(
+        color: Color(0XFF717F9A),
+        fontFamily: 'Inter',
+        fontWeight: FontWeight.w500,
+        fontSize: 16,
       ),
+
+      prefixIcon: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Image.asset(iconPath, width: 20, height: 20),
+      ),
+
+      suffixIcon: isPassword && suffixIconPath != null
+          ? Padding(
+              padding: const EdgeInsets.only(right: 4.0),
+              child: IconButton(
+                onPressed: enabled
+                    ? () => setState(
+                        () => _isPasswordVisible = !_isPasswordVisible,
+                      )
+                    : null,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Image.asset(
+                    suffixIconPath,
+                    width: 20,
+                    height: 20,
+                    color: _isPasswordVisible
+                        ? const Color.fromARGB(255, 15, 40, 59)
+                        : null,
+                  ),
+                ),
+              ),
+            )
+          : suffix,
+      filled: true,
+      //ternery doesn't work so had to force color using MaterialState
+      fillColor: MaterialStateColor.resolveWith((states) {
+        if (states.contains(MaterialState.disabled)) {
+          return const Color(0xFFECEFF5);
+        }
+        return Colors.white;
+      }),
+
+      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: const BorderSide(color: Color(0xFFDAE0EE), width: 1.0),
+      ),
+
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFFDAE0EE), width: 1.0),
       ),
     );
   }
 
-  Widget _verifyButton(String text, {required VoidCallback onPressed}) {
+  Widget _verifyButton({
+    required String text,
+    required VoidCallback onPressed,
+    required bool isEnabled,
+  }) {
     return Container(
       margin: const EdgeInsets.only(right: 8),
-      height: 32,
+      height: 30,
+      decoration: BoxDecoration(
+        gradient: isEnabled
+            ? const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF1D5DE5), Color(0xFF174AB7)],
+              )
+            : null,
+        color: isEnabled ? null : const Color(0XFFB9C6E2),
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFD0D5DD),
+          backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        onPressed: onPressed,
-        child: Text(text, style: const TextStyle(fontSize: 12)),
+        onPressed: isEnabled ? onPressed : null,
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            fontFamily: 'Inter',
+            color: Color(0XFFFFFFFF),
+          ),
+        ),
       ),
     );
   }
